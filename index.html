@@ -1,146 +1,355 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chia tỷ lệ mua – tặng</title>
-<style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark;
---bg:#000;--card:#18181b;--field:#0c0c0e;--border:#2e2e33;--text:#fafafa;--muted:#a1a1aa;--err:#f87171}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-*,*::before,*::after{box-sizing:inherit}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.5}
-main{max-width:960px;margin:0 auto;padding:24px 16px}
-h1{font-size:22px;margin:0 0 20px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:720px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
-.card h2{margin:0 0 6px;font-size:18px}
-.desc{margin:0 0 20px;color:var(--muted);font-size:14px}
-label{display:block;font-size:14px;color:var(--muted);margin:0 0 6px}
-.field{margin-bottom:16px}
-input{width:100%;height:50px;padding:0 16px;background:var(--field);color:var(--text);border:1px solid var(--border);border-radius:16px;font:inherit;font-size:16px;outline:none}
-input:focus{border-color:#71717a}
-input.bad{border-color:var(--err)}
-.err{color:var(--err);font-size:13px;min-height:20px;margin:-6px 0 10px}
-button{width:100%;height:50px;border-radius:16px;font:inherit;font-size:16px;font-weight:600;cursor:pointer}
-.primary{background:var(--text);color:#000;border:0}
-.primary:hover{background:#e4e4e7}
-.ghost{background:transparent;color:var(--muted);border:1px solid var(--border);height:38px;width:auto;padding:0 16px;font-size:14px;font-weight:500;margin-top:12px}
-.ghost:hover{color:var(--text)}
-.res{display:grid;gap:12px;margin-top:20px}
-.box{background:var(--field);border:1px solid var(--border);border-radius:16px;padding:16px}
-.box small{display:block;color:var(--muted);font-size:14px}
-.box strong{display:block;font-size:30px;line-height:1.2;overflow-wrap:anywhere}
-.box[hidden]{display:none}
-.box small#rRetSub{margin-top:4px}
-.box.sm strong{font-size:20px;font-weight:600}
-</style>
-</head>
-<body>
-<main>
-<h1>Chia tỷ lệ mua – tặng</h1>
-<div class="grid">
-  <section class="card">
-    <h2>Nhập chương trình</h2>
-    <p class="desc">Ví dụ: PO 40 mua, 10 tặng, nhà cung cấp giao 46.</p>
-    <div class="field"><label for="buy">Số lượng mua</label><input id="buy" inputmode="decimal" autocomplete="off" placeholder="40"></div>
-    <div class="field"><label for="gift">Số lượng tặng</label><input id="gift" inputmode="decimal" autocomplete="off" placeholder="10"></div>
-    <div class="field"><label for="total">Tổng số lượng thực nhận (NCC giao)</label><input id="total" inputmode="decimal" autocomplete="off" placeholder="46"></div>
-    <div class="err" id="err" role="alert"></div>
-    <button class="primary" id="go">Chia tỷ lệ</button>
-    <button class="ghost" id="reset">Làm mới</button>
-  </section>
-  <section class="card">
-    <h2>Kết quả</h2>
-    <div class="res">
-      <div class="box"><small>Hàng mua</small><strong id="rBuy">–</strong></div>
-      <div class="box"><small>Hàng tặng</small><strong id="rGift">–</strong></div>
-      <div class="box"><small>Tỷ lệ thực tế</small><strong id="rRatio">–</strong></div>
-      <div class="box" id="retBox" hidden><small>Cần trả lại</small><strong id="rRet">–</strong><small id="rRetSub"></small></div>
-      <div class="box sm"><small>Kiểm tra</small><strong id="rCheck">–</strong></div>
-    </div>
-  </section>
-</div>
-</main>
-<script>
-const $ = id => document.getElementById(id);
-const ids = ['buy','gift','total'];
-const labels = {buy:'Số lượng mua', gift:'Số lượng tặng', total:'Tổng số lượng thực nhận'};
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Chia tỷ lệ mua – tặng</title>
+    <style>
+      :root {
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        color-scheme: dark;
+        --bg: #000;
+        --card: #18181b;
+        --field: #0c0c0e;
+        --border: #2e2e33;
+        --text: #fafafa;
+        --muted: #a1a1aa;
+        --err: #f87171;
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        line-height: 1.5;
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 24px 16px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 720px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+      }
+      .card h2 {
+        margin: 0 0 6px;
+        font-size: 18px;
+      }
+      .desc {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      label {
+        display: block;
+        font-size: 14px;
+        color: var(--muted);
+        margin: 0 0 6px;
+      }
+      .field {
+        margin-bottom: 16px;
+      }
+      input {
+        width: 100%;
+        height: 50px;
+        padding: 0 16px;
+        background: var(--field);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        font: inherit;
+        font-size: 16px;
+        outline: none;
+      }
+      input:focus {
+        border-color: #71717a;
+      }
+      input.bad {
+        border-color: var(--err);
+      }
+      .err {
+        color: var(--err);
+        font-size: 13px;
+        min-height: 20px;
+        margin: -6px 0 10px;
+      }
+      button {
+        width: 100%;
+        height: 50px;
+        border-radius: 16px;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .primary {
+        background: var(--text);
+        color: #000;
+        border: 0;
+      }
+      .primary:hover {
+        background: #e4e4e7;
+      }
+      .ghost {
+        background: transparent;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        height: 38px;
+        width: auto;
+        padding: 0 16px;
+        font-size: 14px;
+        font-weight: 500;
+        margin-top: 12px;
+      }
+      .ghost:hover {
+        color: var(--text);
+      }
+      .res {
+        display: grid;
+        gap: 12px;
+        margin-top: 20px;
+      }
+      .box {
+        background: var(--field);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+      }
+      .box small {
+        display: block;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .box strong {
+        display: block;
+        font-size: 30px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+      .box[hidden] {
+        display: none;
+      }
+      .box small#rRetSub {
+        margin-top: 4px;
+      }
+      .box.sm strong {
+        font-size: 20px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Chia tỷ lệ mua – tặng</h1>
+      <div class="grid">
+        <section class="card">
+          <h2>Nhập chương trình</h2>
+          <p class="desc">Ví dụ: PO 40 mua, 10 tặng, nhà cung cấp giao 46.</p>
+          <div class="field">
+            <label for="buy">Số lượng mua</label
+            ><input
+              id="buy"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="40"
+            />
+          </div>
+          <div class="field">
+            <label for="gift">Số lượng tặng</label
+            ><input
+              id="gift"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="10"
+            />
+          </div>
+          <div class="field">
+            <label for="total">Tổng số lượng thực nhận (NCC giao)</label
+            ><input
+              id="total"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="46"
+            />
+          </div>
+          <div class="err" id="err" role="alert"></div>
+          <button class="primary" id="go">Chia tỷ lệ</button>
+          <button class="ghost" id="reset">Làm mới</button>
+        </section>
+        <section class="card">
+          <h2>Kết quả</h2>
+          <div class="res">
+            <div class="box">
+              <small>Hàng mua</small><strong id="rBuy">–</strong>
+            </div>
+            <div class="box">
+              <small>Hàng tặng</small><strong id="rGift">–</strong>
+            </div>
+            <div class="box">
+              <small>Tỷ lệ thực tế</small><strong id="rRatio">–</strong>
+            </div>
+            <div class="box" id="retBox" hidden>
+              <small>Cần trả lại</small><strong id="rRet">–</strong
+              ><small id="rRetSub"></small>
+            </div>
+            <div class="box sm">
+              <small>Kiểm tra</small><strong id="rCheck">–</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const ids = ["buy", "gift", "total"];
+      const labels = {
+        buy: "Số lượng mua",
+        gift: "Số lượng tặng",
+        total: "Tổng số lượng thực nhận",
+      };
 
-const fmt = n => String(Number(n.toFixed(2)));
-const gcd = (a,b) => b ? gcd(b, a % b) : a;
+      const fmt = (n) => String(Number(n.toFixed(2)));
+      const gcd = (a, b) => (b ? gcd(b, a % b) : a);
 
-function parse(raw){
-  const s = raw.trim().replace(',', '.');
-  if (s === '') return {error:'không được để trống'};
-  if (!/^\d*\.?\d+$|^\d+\.$/.test(s)) return {error:'chứa ký tự không hợp lệ (chỉ nhập số)'};
-  return {value: parseFloat(s)};
-}
+      function parse(raw) {
+        const s = raw.trim().replace(",", ".");
+        if (s === "") return { error: "không được để trống" };
+        if (!/^\d*\.?\d+$|^\d+\.$/.test(s))
+          return { error: "chứa ký tự không hợp lệ (chỉ nhập số)" };
+        return { value: parseFloat(s) };
+      }
 
-// Rút gọn tỷ lệ mua:tặng (hỗ trợ tối đa 2 chữ số thập phân)
-function reduceRatio(buy, gift){
-  const a = Math.round(buy * 100), b = Math.round(gift * 100);
-  const g = gcd(a, b);
-  return [a / g, b / g];
-}
+      // Rút gọn tỷ lệ mua:tặng (hỗ trợ tối đa 2 chữ số thập phân)
+      function reduceRatio(buy, gift) {
+        const a = Math.round(buy * 100),
+          b = Math.round(gift * 100);
+        const g = gcd(a, b);
+        return [a / g, b / g];
+      }
 
-function showError(msg, field){
-  $('err').textContent = msg;
-  ids.forEach(i => $(i).classList.toggle('bad', i === field));
-  if (field) $(field).focus();
-}
+      function showError(msg, field) {
+        $("err").textContent = msg;
+        ids.forEach((i) => $(i).classList.toggle("bad", i === field));
+        if (field) $(field).focus();
+      }
 
-function clearResult(){
-  ['rBuy','rGift','rRatio','rCheck'].forEach(i => $(i).textContent = '–');
-  $('retBox').hidden = true;
-}
+      function clearResult() {
+        ["rBuy", "rGift", "rRatio", "rCheck"].forEach(
+          (i) => ($(i).textContent = "–"),
+        );
+        $("retBox").hidden = true;
+      }
 
-function calculate(){
-  const v = {};
-  for (const id of ids){
-    const p = parse($(id).value);
-    if (p.error) { clearResult(); return showError(`${labels[id]} ${p.error}.`, id); }
-    v[id] = p.value;
-  }
-  if (v.buy <= 0)   { clearResult(); return showError('Số lượng mua phải lớn hơn 0.', 'buy'); }
-  if (v.gift < 0)   { clearResult(); return showError('Số lượng tặng không được âm.', 'gift'); }
-  if (v.total <= 0) { clearResult(); return showError('Tổng số lượng thực nhận phải lớn hơn 0.', 'total'); }
+      function calculate() {
+        const v = {};
+        for (const id of ids) {
+          const p = parse($(id).value);
+          if (p.error) {
+            clearResult();
+            return showError(`${labels[id]} ${p.error}.`, id);
+          }
+          v[id] = p.value;
+        }
+        if (v.buy <= 0) {
+          clearResult();
+          return showError("Số lượng mua phải lớn hơn 0.", "buy");
+        }
+        if (v.gift < 0) {
+          clearResult();
+          return showError("Số lượng tặng không được âm.", "gift");
+        }
+        if (v.total <= 0) {
+          clearResult();
+          return showError("Tổng số lượng thực nhận phải lớn hơn 0.", "total");
+        }
 
-  showError('', null);
-  let buy, gift, back = 0, ratio;
-  if (v.gift === 0) {
-    buy = v.total; gift = 0; ratio = 'Không tặng';
-  } else {
-    // Tỷ lệ rút gọn a:b -> mỗi "bộ" gồm a mua + b tặng. Chỉ nhận số bộ nguyên.
-    const [unit, unitGift] = reduceRatio(v.buy, v.gift);
-    const size = unit + unitGift;
-    const sets = Math.floor(v.total / size + 1e-9);
-    buy = sets * unit;
-    gift = sets * unitGift;
-    back = Math.round((v.total - sets * size) * 100) / 100;
-    ratio = `${fmt(unit)} tặng ${fmt(unitGift)}`;
-  }
+        showError("", null);
+        const poTotal = v.buy + v.gift; // tổng theo PO
+        let buy, gift, ratio;
+        const [unit, unitGift] =
+          v.gift === 0 ? [1, 0] : reduceRatio(v.buy, v.gift);
+        ratio =
+          v.gift === 0 ? "Không tặng" : `${fmt(unit)} tặng ${fmt(unitGift)}`;
 
-  $('rBuy').textContent = fmt(buy);
-  $('rGift').textContent = fmt(gift);
-  $('rRatio').textContent = ratio;
-  $('retBox').hidden = back <= 0;
-  $('rRet').textContent = fmt(back);
-  $('rRetSub').textContent = back > 0 ? `Trả lại ${fmt(back)} trên tổng ${fmt(v.total)} để chia đúng tỷ lệ` : '';
-  $('rCheck').textContent = `${fmt(buy)} + ${fmt(gift)} = ${fmt(buy + gift)}`;
-}
+        if (v.total >= poTotal) {
+          // Giao đủ hoặc dư so với PO: chỉ nhận đúng PO, phần còn lại trả hết
+          buy = v.buy;
+          gift = v.gift;
+        } else if (v.gift === 0) {
+          buy = v.total;
+          gift = 0;
+        } else {
+          // Giao thiếu so với PO: chia theo tỷ lệ (số bộ nguyên), phần lẻ trả lại
+          const size = unit + unitGift;
+          const sets = Math.floor(v.total / size + 1e-9);
+          buy = sets * unit;
+          gift = sets * unitGift;
+        }
+        const back = Math.round((v.total - buy - gift) * 100) / 100;
 
-function reset(){
-  ids.forEach(i => $(i).value = '');
-  showError('', null);
-  clearResult();
-  $('buy').focus();
-}
+        $("rBuy").textContent = fmt(buy);
+        $("rGift").textContent = fmt(gift);
+        $("rRatio").textContent = ratio;
+        $("retBox").hidden = back <= 0;
+        $("rRet").textContent = fmt(back);
+        $("rRetSub").textContent =
+          back > 0
+            ? `Trả lại ${fmt(back)} trên tổng ${fmt(v.total)} để chia đúng tỷ lệ`
+            : "";
+        $("rCheck").textContent =
+          `${fmt(buy)} + ${fmt(gift)} = ${fmt(buy + gift)}`;
+      }
 
-$('go').addEventListener('click', calculate);
-$('reset').addEventListener('click', reset);
-ids.forEach(i => $(i).addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); }));
-</script>
-</body>
+      function reset() {
+        ids.forEach((i) => ($(i).value = ""));
+        showError("", null);
+        clearResult();
+        $("buy").focus();
+      }
+
+      $("go").addEventListener("click", calculate);
+      $("reset").addEventListener("click", reset);
+      ids.forEach((i) =>
+        $(i).addEventListener("keydown", (e) => {
+          if (e.key === "Enter") calculate();
+        }),
+      );
+    </script>
+  </body>
 </html>
