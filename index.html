@@ -51,9 +51,6 @@
         font-size: 22px;
         margin: 0 0 20px;
       }
-      .heading {
-        text-align: center;
-      }
       .grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -99,9 +96,13 @@
         font: inherit;
         font-size: 16px;
         outline: none;
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
       }
       input:focus {
-        border-color: #71717a;
+        border-color: #a1a1aa;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
       }
       input.bad {
         border-color: var(--err);
@@ -120,14 +121,29 @@
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
+        transition:
+          background-color 0.2s ease,
+          border-color 0.2s ease,
+          color 0.2s ease,
+          box-shadow 0.2s ease,
+          transform 0.1s ease;
+      }
+      button:active {
+        transform: scale(0.98);
+      }
+      button:focus-visible {
+        outline: 2px solid #a1a1aa;
+        outline-offset: 3px;
       }
       .primary {
         background: var(--text);
         color: #000;
-        border: 0;
+        border: 1px solid var(--text);
       }
       .primary:hover {
-        background: #e4e4e7;
+        background: #d4d4d8;
+        border-color: #d4d4d8;
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
       }
       .ghost {
         background: transparent;
@@ -139,16 +155,38 @@
         font-size: 14px;
         font-weight: 500;
         margin-top: 12px;
-        border-color: #f87171;
-        transition: all;
       }
       .ghost:hover {
         color: var(--text);
+        border-color: #71717a;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+      }
+      .row input {
+        flex: 1;
+        min-width: 0;
+      }
+      input:disabled {
+        color: var(--muted);
+        cursor: not-allowed;
+        opacity: 0.8;
+      }
+      .ghost.sumbtn {
+        height: 50px;
+        margin: 0;
+        padding: 0 22px;
+        flex-shrink: 0;
       }
       .res {
         display: grid;
         gap: 12px;
         margin-top: 20px;
+      }
+      .heading {
+        text-align: center;
       }
       .box {
         background: var(--field);
@@ -185,7 +223,6 @@
       <div class="grid">
         <section class="card">
           <h2>Nhập chương trình</h2>
-          <p class="desc">Ví dụ: PO 40 mua, 10 tặng, nhà cung cấp giao 46.</p>
           <div class="field">
             <label for="buy">Số lượng mua</label
             ><input
@@ -203,6 +240,18 @@
               autocomplete="off"
               placeholder="10"
             />
+          </div>
+          <div class="field">
+            <label for="po">Tổng PO (mua + tặng)</label>
+            <div class="row">
+              <input id="po" disabled placeholder="40 + 10 = 50" /><button
+                type="button"
+                class="ghost sumbtn"
+                id="sum"
+              >
+                Tính
+              </button>
+            </div>
           </div>
           <div class="field">
             <label for="total">Tổng số lượng thực nhận (NCC giao)</label
@@ -342,7 +391,19 @@
           `${fmt(buy)} + ${fmt(gift)} = ${fmt(buy + gift)}`;
       }
 
+      // Tính nhanh tổng PO (không bắt buộc, chỉ để tiện khi số lớn)
+      function calcSum() {
+        const b = parse($("buy").value),
+          g = parse($("gift").value);
+        if (b.error) return showError(`${labels.buy} ${b.error}.`, "buy");
+        if (g.error) return showError(`${labels.gift} ${g.error}.`, "gift");
+        showError("", null);
+        $("po").value =
+          `${fmt(b.value)} + ${fmt(g.value)} = ${fmt(b.value + g.value)}`;
+      }
+
       function reset() {
+        $("po").value = "";
         ids.forEach((i) => ($(i).value = ""));
         showError("", null);
         clearResult();
@@ -351,6 +412,12 @@
 
       $("go").addEventListener("click", calculate);
       $("reset").addEventListener("click", reset);
+      $("sum").addEventListener("click", calcSum);
+      ["buy", "gift"].forEach((i) =>
+        $(i).addEventListener("input", () => {
+          $("po").value = "";
+        }),
+      );
       ids.forEach((i) =>
         $(i).addEventListener("keydown", (e) => {
           if (e.key === "Enter") calculate();
